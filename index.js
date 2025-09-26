@@ -35,7 +35,7 @@ app.delete("/auth/deleteUser/:userId", deleteUser);
 
 // 🔹 Admin
 app.get('/auth/getUsers', getUsers);
-
+git commit -
 
 app.listen(process.env.PORT || 3000, () => {
   console.log("✅ Backend corriendo en http://localhost:3000");

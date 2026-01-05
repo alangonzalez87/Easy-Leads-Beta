@@ -25,9 +25,23 @@ import { logout } from "./auth/logout.js";
 dotenv.config();
 
 const app = express();
+
 app.use(express.json());
+// Accept a comma-separated list of allowed origins via FRONTEND_URLS (fallback to FRONTEND_URL or localhost)
+const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:5173" || 'https://easy-leads.netlify.app')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+console.log('➡️ Allowed CORS origins:', allowedOrigins);
 app.use(cors({
-  origin: "http://localhost:5173",  // URL de tu frontend local
+  origin: function (origin, callback) {
+    // allow non-browser tools like curl/postman (no origin)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS policy: Origin not allowed'));
+  },
   credentials: true,                // Si estás usando cookies o sesiones
 }));
 app.use("/api/user", userRouter);

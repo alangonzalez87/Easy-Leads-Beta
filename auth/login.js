@@ -3,6 +3,9 @@ import jwt from "jsonwebtoken";
 import { pool } from "../db.js";
 import crypto from "crypto";
 
+const ACCESS_TOKEN_EXPIRES_IN = "8h";
+const REFRESH_TOKEN_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
 export async function login(req, res) {
   const { username, password } = req.body;
 
@@ -26,16 +29,23 @@ export async function login(req, res) {
       return res.status(401).json({ error: "Contraseña incorrecta" });
     }
 
-    // Access token (corto) y refresh token (largo)
+    const tokenPayload = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      ...(user.email ? { email: user.email } : {}),
+    };
+
+    // Access token de jornada laboral y refresh token largo
     const accessToken = jwt.sign(
-      { id: user.id, role: user.role },
+      tokenPayload,
       process.env.JWT_SECRET,
-      { expiresIn: "15m" } // token corto
+      { expiresIn: ACCESS_TOKEN_EXPIRES_IN }
     );
 
     // Refresh token como string aleatorio almacenado en BD
     const refreshToken = crypto.randomBytes(64).toString("hex");
-    const refreshExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 días
+    const refreshExpiresAt = new Date(Date.now() + REFRESH_TOKEN_MAX_AGE_MS); // 30 días
 
     await pool.query(
       "INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES ($1, $2, $3)",
@@ -47,7 +57,7 @@ export async function login(req, res) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
+      maxAge: REFRESH_TOKEN_MAX_AGE_MS, // 30 días
     });
 
     const responsePayload = {

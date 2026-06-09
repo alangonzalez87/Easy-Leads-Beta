@@ -28,7 +28,7 @@ const app = express();
 
 app.use(express.json());
 // Accept a comma-separated list of allowed origins via FRONTEND_URLS (fallback to FRONTEND_URL or localhost)
-const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:5173" || 'https://easy-leads.netlify.app')
+const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:5173" )
   .split(',')
   .map(s => s.trim())
   .filter(Boolean);

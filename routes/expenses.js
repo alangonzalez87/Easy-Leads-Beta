@@ -11,7 +11,7 @@ router.post("/", authMiddleware, async (req, res) => {
     const { category, amount, note, expense_date } = req.body;
 
     const { data, error } = await supabase
-      .from("expenses")
+      .from("expenses") 
       .insert([{
         user_id: userId,
         category,
